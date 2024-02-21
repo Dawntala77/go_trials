@@ -17,7 +17,7 @@ func Delete(c *gin.Context) {
 	member_delete := &models.Members{}
 	id := c.Param("id")
 
-	if err := db.Delete(member_delete, id).Error; err != nil {
+	if err := db.Unscoped().Delete(member_delete, id).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
