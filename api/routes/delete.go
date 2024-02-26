@@ -21,6 +21,6 @@ func Delete(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	
+	c.JSON(http.StatusOK, "record is errased in the database")
 
 }

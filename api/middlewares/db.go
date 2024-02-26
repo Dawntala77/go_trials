@@ -4,10 +4,17 @@ package middlewares
 import (
 	"fmt"
 
+	"os"
+
 	"example.com/myproject/api/models"
+	"github.com/subosito/gotenv"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
+
+func init() {
+	gotenv.Load()
+}
 
 func DbConnection() (*gorm.DB, error) {
 
@@ -21,7 +28,12 @@ func DbConnection() (*gorm.DB, error) {
 	   sslmode = (must be set to disabled unless using SSL)
 	*/
 
-	connStr := "user=postgres dbname=lego_builder password=dawn_tala host=localhost sslmode=disable"
+	users := os.Getenv("USER")
+	datab := os.Getenv("DATABASE")
+	pass := os.Getenv("PASSWORD")
+	hosts := os.Getenv("HOST")
+
+	connStr := "user=" + users + "dbname=" + datab + "password=" + pass + "host=" + hosts + "sslmode=disable"
 
 	db, err := gorm.Open(postgres.Open(connStr), &gorm.Config{})
 	if err != nil {
