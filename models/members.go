@@ -6,8 +6,7 @@ import (
 
 type Members struct {
 	gorm.Model
-	Identity     int    `json:"Identity"`
 	Name         string `json:"Name"`
-	Email_addres string `json:"Email_addres"`
+	EmailAddress string `json:"EmailAddress"`
 	Password     string `json:"Password"`
 }
