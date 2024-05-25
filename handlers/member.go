@@ -2,15 +2,23 @@ package handlers
 
 import (
 	"encoding/json"
-	"example.com/myproject/database"
-	"example.com/myproject/models"
 	"fmt"
-	"github.com/gin-gonic/gin"
 	"io/ioutil"
 	"net/http"
+	"sync"
+
+	"example.com/myproject/database"
+	"example.com/myproject/models"
+	"github.com/gin-gonic/gin"
 )
 
-func SignUp(c *gin.Context) {
+var (
+	mutex sync.Mutex
+	counter int
+)
+
+func SignUp(c *gin.Context, wg* sync.WaitGroup) {
+	mutex.Lock()
 	jsonBody, err := ioutil.ReadAll(c.Request.Body)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to read request body"})
@@ -44,9 +52,12 @@ func SignUp(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, "User created successfully")
+	mutex.Unlock()
+	wg.Done()
 }
 
-func GetUsers(c *gin.Context) {
+func GetUsers(c *gin.Context, wg* sync.WaitGroup) {
+	mutex.Lock()
 	db, err := database.ConnectT()
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -61,10 +72,12 @@ func GetUsers(c *gin.Context) {
 	//here is the return statement and it data.rows affected displays the number of rows available instead of having it display all of them in which it will look ugly
 	//if you want to see change it from data.RowsAffected to all_members
 	c.JSON(http.StatusOK, allMembers)
-
+	mutex.Unlock()
+	wg.Done()
 }
 
-func GetUser(c *gin.Context) {
+func GetUser(c *gin.Context, wg* sync.WaitGroup) {
+	mutex.Lock()
 	db, err := database.ConnectT()
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -80,9 +93,12 @@ func GetUser(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, user)
+	mutex.Unlock()
+	wg.Done()
 }
 
-func UpdateUser(c *gin.Context) {
+func UpdateUser(c *gin.Context, wg* sync.WaitGroup) {
+	mutex.Lock()
 	db, err := database.ConnectT()
 	if err != nil {
 		panic(err)
@@ -103,10 +119,12 @@ func UpdateUser(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, "update succesfull")
-
+	mutex.Unlock()
+	wg.Done()
 }
 
-func DeleteUser(c *gin.Context) {
+func DeleteUser(c *gin.Context, wg* sync.WaitGroup) {
+	mutex.Lock()
 	db, err := database.ConnectT()
 	if err != nil {
 		panic(err)
@@ -120,5 +138,6 @@ func DeleteUser(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, "record is errased in the database")
-
+	mutex.Unlock()
+	wg.Done()
 }

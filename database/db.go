@@ -1,12 +1,13 @@
 package database
 
 import (
-	"example.com/myproject/models"
 	"fmt"
-	"gorm.io/driver/postgres"
-	"gorm.io/gorm"
 	"os"
 	"sync"
+
+	"example.com/myproject/models"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
 var db *gorm.DB
@@ -20,7 +21,15 @@ func ConnectT() (*gorm.DB, error) {
 	}
 	fmt.Println("No db connection, connecting...")
 
-	connectionString := os.Getenv("DB_URL")
+	host := os.Getenv("HOST")
+	user := os.Getenv("USER")
+	password := os.Getenv("PASSWORD")
+	dbname := os.Getenv("DATABASE")
+	port := os.Getenv("DATABASE_PORT")
+
+	connectionString := fmt.Sprintf(
+		"host=%s user=%s password=%s dbname=%s port=%s sslmode=disable",
+		host, user, password, dbname, port)
 
 	db, err := gorm.Open(postgres.Open(connectionString), &gorm.Config{})
 	if err != nil {

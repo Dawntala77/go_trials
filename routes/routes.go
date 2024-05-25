@@ -1,33 +1,44 @@
 package routes
 
 import (
-	"example.com/myproject/handlers"
 	"fmt"
-	"github.com/gin-gonic/gin"
 	"os"
+	"sync"
+
+	"example.com/myproject/config"
+	"example.com/myproject/handlers"
+	"github.com/gin-gonic/gin"
 )
 
 func init() {
-	
+	config.LoadEnv()
 }
 
-func setupRoutes(r *gin.Engine) {
-	r.POST("/signup", handlers.SignUp)
-	r.GET("/users", handlers.GetUsers)
-	r.GET("/user/:id", handlers.GetUser)
-	r.PUT("/user/:id", handlers.UpdateUser)
-	r.DELETE("/user/:id", handlers.DeleteUser)
+func wrapHandler(handler func(c *gin.Context, wg *sync.WaitGroup), wg *sync.WaitGroup) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		wg.Add(1)
+		handler(c, wg)
+	}
+}
+
+func setupRoutes(r *gin.Engine, wg *sync.WaitGroup) {
+	r.POST("/signup", wrapHandler(handlers.SignUp, wg))
+	r.GET("/users", wrapHandler(handlers.GetUsers, wg))
+	r.GET("/user/:id", wrapHandler(handlers.GetUser, wg))
+	r.PUT("/user/:id", wrapHandler(handlers.UpdateUser, wg))
+	r.DELETE("/user/:id", wrapHandler(handlers.DeleteUser, wg))
 }
 
 func Run() {
 	gin.SetMode(gin.ReleaseMode)
 	r := gin.Default()
-	
-	setupRoutes(r)
+	wg := &sync.WaitGroup{}
+
+	setupRoutes(r, wg)
 
 	port := os.Getenv("PORT")
 	err := r.Run(":" + port)
-	
+
 	if err != nil {
 		fmt.Println(err)
 		return
